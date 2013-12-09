@@ -1,14 +1,26 @@
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <vector>
 #include <vector>
 #include <iterator>
 #include <algorithm>
+
 using namespace std;
+//for convenience
+typedef vector<double>::size_type vec_size;
+typedef vector<double>::const_iterator iterator_elem;
+typedef vector<vector<double>> vec_of_vecs;
 //list tools
+vector<double> vector_pass_by_reference(vector<double> list)
+{
+	vector<double>* listptr = &list;
+	vector<double> returnlist = *listptr;
+	return returnlist;
+}
 void listprinter(vector<double> list, char separator = ' ')
 {
-for (vector<double>::const_iterator i = list.begin(); i != list.end(); i++)
+for (iterator_elem i = list.begin(); i != list.end(); i++)
 {
 cout << *i << separator;
 }
@@ -50,11 +62,14 @@ vector<double> listbuilder(int length, int start = 1, string type = "fsequential
 	}
 	return returnlist;
 }
-vector<double> vector_pass_by_reference(vector<double> list)
+vec_of_vecs vector_of_vectors(int num_of_vecs, int length_of_vecs, string list_type = "random")
 {
-	vector<double>* listptr = &list;
-	vector<double> returnlist = *listptr;
-	return returnlist;
+	vec_of_vecs return_vec;
+	for (int i=0; i < num_of_vecs; i++)
+	{
+		return_vec.push_back(listbuilder(length_of_vecs, 0, list_type));
+	}
+	return return_vec;
 }
 //element tools
 vector<double> swap_elems(vector<double> list, int index1, int index2)
@@ -93,7 +108,7 @@ bool sorted(vector<double> list)
 vector<double> bubblesort(vector<double> unsortedlist)
 {
 	vector<double> sortinglist = vector_pass_by_reference(unsortedlist);
-	int unsortedlistlength = sortinglist.size();
+	vec_size unsortedlistlength = sortinglist.size();
 	while (sorted(sortinglist) == false)
 	{
 		for (int i = 0; i < unsortedlistlength - 1; i++)
@@ -119,33 +134,29 @@ double mean(vector<double> list)
 }
 double median(vector<double> list)
 {
-	return bubblesort(list).at(list.size() / 2);
-}
-double mode(vector<double> list)
-{
-	vector<double> sorted_list = bubblesort(list);
-	int mode = 0;
-	int count = 0;
-	for (int i = 0; i < sorted_list.size() - 1, i++)
-	{
-		if (sorted_list.at(i) == sorted_list.at(i + 1))
-		{
-			count += 1;
-		}
-		else
-		{
-		}
-	}
-	return mode;
+	vector<double> sort_list = list;
+	vec_size list_size = sort_list.size();
+	sort(sort_list.begin(), sort_list.end());
+	vec_size midindex = list_size / 2;
+	double median = list_size % 2 == 0 ? (sort_list[midindex] + sort_list[midindex + 1]) / 2 : sort_list[midindex];
+	return median;
 }
 int main()
 {
-	vector<double> list1 = listbuilder(1000, 1, "random");
-	listprinter(list1);
-	cout << "enter for stats ";
-	cin.get();
-	cout << "\nsorted \n";
-	listprinter(bubblesort(list1));
-	cout << "\nmean: " << mean(list1) << "\nmedian: " << ' ' << median(list1) << "\n";
+	int num, length;
+	cout << "Number of random vectors?: ";
+	cin >> num;
+	cout << "length of random vectors?: ";
+	cin >> length;
+	vec_of_vecs vecs = vector_of_vectors(num, length);
+	vector<double> medians;
+	vector<double> means;
+	for (vec_size i = 0; i < vecs.size()-1; i++)
+	{
+		medians.push_back(median(vecs[i]));
+		means.push_back(mean(vecs[i]));
+	}
+	streamsize prec = cout.precision(3);
+	cout << setprecision(3) << endl << "STATS" << endl << "Mean of means: " << mean(means) << endl << "Mean of medians: " << mean(medians) << endl << setprecision(prec);
 	return 0;
 }
